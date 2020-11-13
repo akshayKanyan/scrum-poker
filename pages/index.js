@@ -1,65 +1,93 @@
-import Head from 'next/head'
-import styles from '../styles/Home.module.css'
+import React, { useState, useContext, useEffect } from "react";
+import { makeStyles } from "@material-ui/core/styles";
+import { Wrapper } from "../components/templates/wrapper";
+import { SocketContext } from "./_app";
+import { v4 as uuidv4 } from "uuid";
+import Link from "next/link";
+import Button from "@material-ui/core/Button";
+import { H1 } from "../components/typography";
 
-export default function Home() {
+import { PokerStyle } from "../theme/pokerStyle.js";
+
+// export const getStaticProps = async (context) => {
+//   // let productData = await axios
+//   //   .get(
+//   //     `https://3pupscript.globexcorp.net/wp-json/wp/v2/pages/?slug=hair-loss`
+//   //   )
+//   //   .then((_) => {
+//   //     let { data = [] } = _;
+//   //     console.log("abcd", data);
+//   //     let { ACF } = data[0] || {};
+//   //     return ACF || {};
+//   //   });
+
+//   return {
+//     revalidate: 10,
+//     props: {},
+//   };
+// };
+
+// export async function getStaticPaths() {
+//   return {
+//     paths: [
+//       // See the "paths" section below
+//     ],
+//     fallback: true, // See the "fallback" section below
+//   };
+// }
+
+const useStyles = makeStyles(PokerStyle);
+
+export default function ScrumPoker() {
+  const classes = useStyles();
+  const { name, setName } = useState("");
+  const { socket } = useContext(SocketContext);
+
+  const setUserName = (e) => {
+    setName(e.target.value);
+  };
+  const loginUser = () => {
+    console.log("sssxxxxxxx");
+    socket.emit("login", "akshay");
+  };
+
+  useEffect(() => {
+    // subscribe a new user
+    // socket.emit("login", { id: uuidv4() , });
+    // list of connected users
+    socket.on("users", (data) => {
+      console.log("ssssss", data);
+      // setUser({ usersList: JSON.parse(data) });
+    });
+    // we get the messages
+    socket.on("getMsg", (data) => {
+      let listMessages = recMsg.listMsg;
+      listMessages.push(JSON.parse(data));
+      setRecMsg({ listMsg: listMessages });
+    });
+  }, []);
+
   return (
-    <div className={styles.container}>
-      <Head>
-        <title>Create Next App</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
-
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
+    <Wrapper align="center" col>
+      <H1 pt={30}>Select User</H1>
+      <Wrapper align="center" col>
+        <Link href="/admin">
+          <Button className={classes.Button} variant="outlined" color="primary">
+            Admin
+          </Button>
+        </Link>
+        <Link href="/user">
+          <Button
+            className={classes.Button}
+            variant="outlined"
+            color="secondary"
           >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/import?filter=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
-        </a>
-      </footer>
-    </div>
-  )
+            User
+          </Button>
+        </Link>
+      </Wrapper>
+      {/* <input type="text" onChange={setUserName} />
+      <input type="button" value="login" onClick={loginUser} /> */}
+    </Wrapper>
+  );
 }
