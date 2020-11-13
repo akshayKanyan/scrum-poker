@@ -11,7 +11,7 @@ import { AdminStyle } from "../theme/adminStyle.js";
 
 const useStyles = makeStyles(AdminStyle);
 
-export default function ScrumPoker() {
+export default function Admin() {
   const classes = useStyles();
   const [roomName, setRoomName] = useState("");
   const { socket } = useContext(SocketContext);
