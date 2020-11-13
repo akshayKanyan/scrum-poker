@@ -69,7 +69,7 @@ export default function ScrumPoker() {
 
   return (
     <Wrapper align="center" col>
-      <H1 pt={30}>Select User</H1>
+      <H1 pt={30}>SELECT USER</H1>
       <Wrapper align="center" col>
         <Link href="/admin">
           <Button className={classes.Button} variant="outlined" color="primary">

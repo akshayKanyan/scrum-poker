@@ -8,9 +8,15 @@ export const H1 = styled.h1.attrs(({ className }) => ({
   }};
   ${(props = {}) => {
     let computedStyle = {};
-    let { pt } = props;
+    let { pt, cursor } = props;
     if (pt) {
       computedStyle = { ...computedStyle, paddingTop: pt };
+    }
+    if (cursor) {
+      computedStyle = {
+        ...computedStyle,
+        cursor,
+      };
     }
     return css(computedStyle);
   }}
@@ -48,13 +54,19 @@ export const H3 = styled.h3.attrs(({ className }) => ({
     }
   }
   ${(props) => {
-    let { animation } = props;
+    let { animation, cursor } = props;
     let computedStyle = {};
     if (animation) {
       computedStyle = {
         ...computedStyle,
         "-webkit-animation": "random 1s infinite",
         animation: "random 1s infinite",
+      };
+    }
+    if (cursor) {
+      computedStyle = {
+        ...computedStyle,
+        cursor,
       };
     }
     return css(computedStyle);

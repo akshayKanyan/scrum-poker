@@ -17,6 +17,8 @@ export const Wrapper = styled.div.attrs(({ className }) => ({
       align,
       justify,
       pt,
+      padding,
+      margin
     } = props || {};
     let computedStyle = {};
     if (grid) {
@@ -43,6 +45,18 @@ export const Wrapper = styled.div.attrs(({ className }) => ({
       computedStyle = {
         ...computedStyle,
         paddingTop: pt,
+      };
+    }
+    if (padding) {
+      computedStyle = {
+        ...computedStyle,
+        padding,
+      };
+    }
+    if (margin) {
+      computedStyle = {
+        ...computedStyle,
+        margin,
       };
     }
     if (align) {

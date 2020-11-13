@@ -13,56 +13,99 @@ app.prepare().then(() => {
     // Be sure to pass `true` as the second argument to `url.parse`.
     // This tells it to parse the query portion of the URL.
     const parsedUrl = parse(req.url, true);
-    const { pathname, query } = parsedUrl;
-
-    if (pathname === "/a") {
-      app.render(req, res, "/a", query);
-    } else if (pathname === "/b") {
-      app.render(req, res, "/b", query);
-    } else {
-      handle(req, res, parsedUrl);
-    }
+    handle(req, res, parsedUrl);
   }).listen(3000, (err) => {
     if (err) throw err;
     console.log("> Ready on http://localhost:3000");
   });
   const io = socketIo(server);
-  let users = [];
+  let users = {};
   io.on("connection", (socket) => {
-    socket.on("login", (userName) => {
-      users.push({
-        id: socket.id,
-        userName: userName,
-        connectionTime: new moment().format("YYYY-MM-DD HH:mm:ss"),
-      });
-      socket.emit("connecteduser", JSON.stringify(users[users.length - 1]));
-      io.emit("users", JSON.stringify(users));
+    socket.on("create-room", (data = {}) => {
+      let { roomName } = data || {};
+      if (!users[roomName]) {
+        users[roomName] = {};
+      }
+      socket.join(roomName);
+      socket.emit("room-joined", true);
+      //   users.push({
+      //     id: socket.id,
+      //     userName: userName,
+      //     connectionTime: new moment().format("YYYY-MM-DD HH:mm:ss"),
+      //   });
+      //   socket.emit("connecteduser", JSON.stringify(users[users.length - 1]));
+      //   io.emit("users", JSON.stringify(users));
     });
 
-    socket.on("sendMsg", (msgTo) => {
-      msgTo = JSON.parse(msgTo);
-      const minutes = new Date().getMinutes();
-      io.emit(
-        "getMsg",
-        JSON.stringify({
-          id: socket.id,
-          userName: users.find((e) => e.id == msgTo.id).userName,
-          msg: msgTo.msg,
-          time:
-            new Date().getHours() +
-            ":" +
-            (minutes < 10 ? "0" + minutes : minutes),
-        })
+    socket.on("get-users", (data = {}) => {
+      let { roomName } = data || {};
+      if (!users[roomName]) {
+        users[roomName] = {};
+      }
+      socket.emit("users", users[roomName]);
+    });
+
+    socket.on("login", (data = {}) => {
+      console.log("sssssss", data);
+      let { userName, roomName } = data;
+      if (!users[roomName]) {
+        socket.emit("no-room-found", "no room found");
+        return;
+      }
+      console.log("ssssssssssss11111", data);
+      if (users[roomName] && users[roomName][userName]) {
+        socket.join(roomName);
+        socket.emit("user-room-joined", true);
+      } else {
+        users[roomName][userName] = [];
+        socket.join(roomName);
+        socket.emit("user-room-joined", true);
+      }
+      //   socket.emit("connecteduser", JSON.stringify(users[users.length - 1]));
+      io.to(roomName).emit("users", users[roomName]);
+    });
+
+    socket.on("set-story", (data = {}) => {
+      console.log("sssssss", data);
+      let { roomName, story } = data;
+      if (users[roomName] && users[roomName].story) {
+        users[roomName].story.push({
+          story,
+          storyNumber: users[roomName].story.length - 1,
+        });
+      } else {
+        users[roomName].story = [{ story, storyNumber: 0 }];
+      }
+      io.to(roomName).emit(
+        "new-story",
+        users[roomName].story[users[roomName].story.length - 1]
       );
     });
 
-    socket.once("disconnect", () => {
-      let index = -1;
-      if (users.length >= 0) {
-        index = users.findIndex((e) => e.id == socket.id);
-      }
-      if (index >= 0) users.splice(index, 1);
-      io.emit("users", JSON.stringify(users));
-    });
+    // socket.on("sendMsg", (msgTo) => {
+    //   msgTo = JSON.parse(msgTo);
+    //   const minutes = new Date().getMinutes();
+    //   io.emit(
+    //     "getMsg",
+    //     JSON.stringify({
+    //       id: socket.id,
+    //       userName: users.find((e) => e.id == msgTo.id).userName,
+    //       msg: msgTo.msg,
+    //       time:
+    //         new Date().getHours() +
+    //         ":" +
+    //         (minutes < 10 ? "0" + minutes : minutes),
+    //     })
+    //   );
+    // });
+
+    // socket.once("disconnect", () => {
+    //   let index = -1;
+    //   if (users.length >= 0) {
+    //     index = users.findIndex((e) => e.id == socket.id);
+    //   }
+    //   if (index >= 0) users.splice(index, 1);
+    //   io.emit("users", JSON.stringify(users));
+    // });
   });
 });
