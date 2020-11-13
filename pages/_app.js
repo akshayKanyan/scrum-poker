@@ -9,7 +9,10 @@ import { Wrapper } from "../components/templates/wrapper";
 import { H3 } from "../components/typography";
 import "../styles/globals.css";
 
-const ENDPOINT = "http://localhost:3000";
+const ENDPOINT =
+  process.env.NODE_ENV !== "production"
+    ? "http://localhost:3000"
+    : "https://scrum-poker-3pg.herokuapp.com/";
 const socket = socketIOClient(ENDPOINT);
 export const SocketContext = React.createContext({});
 export const RoomNameContext = React.createContext("");
