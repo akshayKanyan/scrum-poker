@@ -1,9 +1,10 @@
 import React, { useState, useContext, useEffect } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { Wrapper } from "../components/templates/wrapper";
-import { H2 } from "../components/typography";
+import { H2, P2 } from "../components/typography";
 import { SocketContext, RoomNameContext } from "./_app";
 import { useRouter } from "next/router";
+import DoneIcon from "@material-ui/icons/Done";
 import Button from "@material-ui/core/Button";
 import Tooltip from "@material-ui/core/Tooltip";
 import Table from "@material-ui/core/Table";
@@ -24,9 +25,23 @@ export default function AdminDashboard() {
   const router = useRouter();
   const [users, setUsers] = useState([]);
   const [story, setStory] = useState("");
+  const [storyStep, setStoryStep] = useState(0);
+  const [userResponses, setUserResponses] = useState({});
 
   const { socket } = useContext(SocketContext);
-  const { roomName, setRoomName } = useContext(RoomNameContext);
+  const { roomName } = useContext(RoomNameContext);
+
+  const updateStoryPoint = (data = {}) => {
+    let { usersRes = {} } = data;
+    setUserResponses({ ...usersRes });
+  };
+  const updateStory = (data = {}) => {
+    let { story = "" } = data;
+    setStory(story);
+    if (story) {
+      setStoryStep(1);
+    }
+  };
 
   useEffect(() => {
     if (!roomName.trim()) {
@@ -36,8 +51,10 @@ export default function AdminDashboard() {
       socket.on("users", (data = {}) => {
         setUsers([...Object.keys(data)]);
       });
+      socket.on("update-story-points", updateStoryPoint);
+      socket.on("update-story", updateStory);
       //when admin refresh the page it gets the users data if avalilable
-      socket.emit("get-users", { roomName });
+      socket.emit("get-users-data", { roomName });
     }
   }, []);
 
@@ -45,7 +62,19 @@ export default function AdminDashboard() {
     setStory(e.target.value);
   };
   const addStory = (e) => {
-    socket.emit("set-story", {story, roomName});
+    socket.emit("set-story", { story, roomName });
+    setStoryStep(1);
+  };
+  const flipCards = (e) => {
+    socket.emit("stop-estimations", { story, roomName });
+    setStoryStep(2);
+  };
+
+  const resetData = (e) => {
+    socket.emit("reset-question", { roomName });
+    setStoryStep(0);
+    setUserResponses({});
+    setStory("");
   };
 
   return (
@@ -57,28 +86,87 @@ export default function AdminDashboard() {
             placement="bottom"
           >
             <H2 cursor="pointer">
-              ROOM NAME: <span className={classes.roomName}>{roomName}</span>
+              ADMIN OF ROOM :{" "}
+              <span className={classes.roomName}>{roomName}</span>
             </H2>
           </Tooltip>
         </Wrapper>
-        <Wrapper pt={30}>
+        <Wrapper noFlex pt={30}>
           <TextField
             id="standard-multiline-flexible"
             label="Story"
+            classes={{ root: classes.storyArea }}
             multiline
             rowsMax={7}
             value={story}
             onChange={handleStoryChange}
           />
-          <Button
-            disabled={!story.trim().length}
-            onClick={addStory}
-            className={classes.Button}
-            variant="outlined"
-            color="secondary"
-          >
-            Create
-          </Button>
+          {storyStep === 0 ? (
+            <Button
+              disabled={!story.trim().length}
+              onClick={addStory}
+              className={classes.Button}
+              variant="outlined"
+              color="secondary"
+            >
+              CREATE
+            </Button>
+          ) : storyStep === 1 ? (
+            <Button
+              onClick={flipCards}
+              className={classes.Button}
+              variant="outlined"
+              color="secondary"
+            >
+              FLIP
+            </Button>
+          ) : (
+            <Button
+              onClick={resetData}
+              className={classes.Button}
+              variant="outlined"
+              color="secondary"
+            >
+              RESET
+            </Button>
+          )}
+        </Wrapper>
+        <Wrapper className={classes.cardsWrapper} pt={30}>
+          {users.map((row) => (
+            <Wrapper key={row} margin={30} align="center" noFlex col>
+              <div
+                className={`flip-card  ${
+                  storyStep === 2 ? classes.flipTheCard : ""
+                }`}
+              >
+                <div
+                  className={`flip-card-inner ${
+                    storyStep === 2 ? classes.flipTheCard : ""
+                  }`}
+                >
+                  <div className="flip-card-front">
+                    {userResponses[row] ? (
+                      <div className={classes.doneEstimation}>
+                        <DoneIcon className={classes.doneIcon} />
+                      </div>
+                    ) : null}
+                  </div>
+                  <div className="flip-card-back">
+                    <div className={classes.backCard}>
+                      {userResponses[row] ? (
+                        userResponses[row]
+                      ) : (
+                        <span className={classes.notAnswred}>NOT ANSWRED</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <P2 className={classes.cardName}>
+                <span>{row}</span>
+              </P2>
+            </Wrapper>
+          ))}
         </Wrapper>
       </Wrapper>
       <Wrapper noFlex>
@@ -87,7 +175,7 @@ export default function AdminDashboard() {
             <TableHead>
               <TableRow>
                 <TableCell classes={{ root: classes.tableCell }}>
-                  Members {users.length}
+                  Members: {users.length}
                 </TableCell>
               </TableRow>
             </TableHead>

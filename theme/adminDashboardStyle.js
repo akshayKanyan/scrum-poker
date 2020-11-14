@@ -11,6 +11,7 @@ export const AdminDashboardStyle = (theme) => {
     },
     Button: {
       width: 200,
+      maxHeight: 37,
       marginTop: 30,
     },
     textField: {
@@ -30,6 +31,45 @@ export const AdminDashboardStyle = (theme) => {
         flexDirection: "column",
         minWidth: "100%",
       },
+    },
+    storyArea: {
+      marginRight: 30,
+      width: 1000,
+    },
+    cardName: {
+      fontWeight: "bold",
+      marginTop: 20,
+    },
+    cardsWrapper: {
+      flexWrap: "wrap",
+    },
+    doneEstimation: {
+      backgroundColor: "green",
+      height: "100%",
+      width: "100%",
+      opacity: 0.6,
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    doneIcon: {
+      fontSize: "73px",
+      color: "white",
+    },
+    flipTheCard: {
+      transform: "rotateY(180deg)",
+    },
+    backCard: {
+      transform: "rotateY(180deg)",
+      height: "100%",
+      width: "100%",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      fontSize: "50px",
+    },
+    notAnswred: {
+      fontSize: "15px",
     },
   };
 };

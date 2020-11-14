@@ -18,7 +18,8 @@ export const Wrapper = styled.div.attrs(({ className }) => ({
       justify,
       pt,
       padding,
-      margin
+      margin,
+      cardHoverStyle,
     } = props || {};
     let computedStyle = {};
     if (grid) {
@@ -104,5 +105,13 @@ export const Wrapper = styled.div.attrs(({ className }) => ({
       }
     }
     return css(computedStyle);
+  }}
+  ${(props) => {
+    if (props.cardHoverStyle) {
+      return `
+      &:hover {
+      color: red; 
+  `;
+    }
   }}
 `;

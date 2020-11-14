@@ -22,32 +22,49 @@ const useStyles = makeStyles(UserDashboardStyle);
 export default function UserDashboard() {
   const classes = useStyles();
   const router = useRouter();
-  const [users, setUsers] = useState([]);
   const [story, setStory] = useState({});
+  const [storyPoint, setStoryPoint] = useState({});
 
   const { socket } = useContext(SocketContext);
   const { roomName, userName } = useContext(RoomNameContext);
 
   const onNewStory = (data = {}) => {
+    let { usersRes = {} } = data;
     setStory({ ...data });
+    let point = usersRes[userName] || "";
+    setStoryPoint(point);
+  };
+
+  const setPoint = (data = "") => {
+    setStoryPoint(data);
+    socket.emit("set-user-story-point", {
+      userName,
+      roomName,
+      storyPoint: data,
+    });
   };
   useEffect(() => {
     if (!roomName.trim() || !userName.trim()) {
       router.push("/");
     } else {
       socket.on("new-story", onNewStory);
+      socket.on("stop-estimations", onNewStory);
+      socket.emit("get-user-data", { roomName, userName });
     }
   }, []);
 
+  const points = ["XS", "S", "M", "L", "XL", "XXL", "?"];
+
   return (
-    <Wrapper col  margin="0px 0px 0px 30px">
+    <Wrapper col margin="0px 0px 0px 30px">
       <Wrapper noFlex pt={30}>
         <Tooltip
           title="you are in this room make sure this is same name set by admin"
           placement="bottom"
         >
           <H2 cursor="pointer">
-            IN ROOM: <span className={classes.roomName}>{roomName}</span>
+            {userName} IN ROOM:{" "}
+            <span className={classes.roomName}>{roomName}</span>
           </H2>
         </Tooltip>
       </Wrapper>
@@ -55,6 +72,32 @@ export default function UserDashboard() {
         <h3>
           Story: <span className={classes.Story}>{story.story}</span>
         </h3>
+        {story.story ? (
+          <Wrapper className={classes.cardsWrapper} pt={30}>
+            {points.map((row) => (
+              <Wrapper
+                key={row}
+                cardHoverStyle
+                className={`${classes.pointsCard}
+                ${
+                  story.estimationsStopped
+                    ? storyPoint === row
+                      ? classes.estimatedStopSelected
+                      : classes.estimationsStopped
+                    : ""
+                }
+                  ${storyPoint === row ? classes.selectedStoryPoint : ""} `}
+                margin={30}
+                center
+                onClick={() => !story.estimationsStopped && setPoint(row)}
+                noFlex
+                col
+              >
+                {row}
+              </Wrapper>
+            ))}
+          </Wrapper>
+        ) : null}
       </Wrapper>
     </Wrapper>
   );
